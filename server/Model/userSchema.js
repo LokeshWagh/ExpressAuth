@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const JWT= require("jsonwebtoken");
+const bcrypt=require("bcrypt");
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -15,11 +16,20 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, "Password is required"]
+        required: [true, "Password is required"],
+        select:false
     }
 }, {
     timestamps: true
 });
+
+
+userSchema.pre("save", async function(next){
+    if(!this.isModified("password")) return next();
+
+    this.password = await bcrypt.hash(this.password,10);
+    next();
+})
 
 // // 🔍 .methods kya hai?
 // .methods Mongoose ka built-in object hai, jisme tum custom functions define kar sakte ho jo har document (i.e., user) ke sath kaam karein.

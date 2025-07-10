@@ -1,7 +1,7 @@
 const emailValidator = require("email-validator");
 const userModel = require("../Model/userSchema");
 
-const signup = async (req, res, next) => {
+const signup = async (req, res,next) => {
   const { name, email, password } = req.body;
   console.log(name, email, password);
 
@@ -19,13 +19,14 @@ const signup = async (req, res, next) => {
 
   try {
     const userInfo = new userModel(req.body);
+    console.log(userInfo)
     // hamare pass data direct aa raha hai par agar data name ka aa raha hai aur hame db me stored karne ke liye namee yesa chahihe to hame const userInfo=userModel.module({namee:name}); yese likhna padega
 
     // for save in the db
 
     const result = await userInfo.save();
+    console.log(result);
     res.status(200).json({
-      status: 200,
       message: "Working perfectly",
       data: [],
     });
@@ -38,6 +39,7 @@ const signup = async (req, res, next) => {
     } else {
       return res.status(400).json({
         success: false,
+        message:e.message || "Not SignUp"
       });
     }
   }
@@ -47,7 +49,7 @@ const signup = async (req, res, next) => {
 const signin = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(200).json({
+    return res.status(400).json({
       success: false,
       message: "Every field is filled",
     });
@@ -88,10 +90,10 @@ const signin = async (req, res) => {
     });
 
 
-      return res.status(200).json({
-      success: true,
-      massage: "User Login SuccessFully",
-    });
+    //   return res.status(200).json({
+    //   success: true,
+    //   massage: "User Login SuccessFully",
+    // });
   } catch (error) {
     return res.status(400).json({
       success: false,
@@ -101,10 +103,55 @@ const signin = async (req, res) => {
 };
 
 
+// for fetching the information of the user
+
+const getuser =async(req,res)=>{
+    const userID = req.user.id;
+    console.log(userID);
+    try {
+      const userDetail= await userModel.findById(userID).select("+password");
+      //console.log("UserDetail : ",userDetail.password.select("+password"));
+      
+      //console.log(userDetail.password)
+      return res.status(200).json({
+        success:true,
+        data:userDetail
+      })
+
+    } catch (error) {
+      return res.status(400).json({
+        success:false,
+        massage:"User Data Not get"
+    })
+    }
+  }
+
+
+  const logout =(req,res)=>{
+    try {
+      const cookiesOptional ={
+        expires: new Date(),
+        httpOnly:true
+      }
+      res.cookie("token",null,cookiesOptional);
+      return res.status(200).json({
+        success:true,
+        message:"Logout SuccessFul"
+      })
+    } catch (error) {
+      return res.status(400).json({
+        success:false,
+        message:"logout fail"
+      })
+    }
+  }
+
 
 
 
 module.exports = {
   signup,
   signin,
+  getuser,
+ logout
 };
