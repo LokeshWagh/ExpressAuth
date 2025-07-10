@@ -1,4 +1,5 @@
 const emailValidator = require("email-validator");
+const bcrypt = require("bcrypt");
 const userModel = require("../Model/userSchema");
 
 const signup = async (req, res,next) => {
@@ -56,20 +57,22 @@ const signin = async (req, res) => {
   }
 
   try {
-    const result = await userModel.findOne({ email }).select("+password");
+   const result = await userModel.findOne({ email }).select("+password");
     if (!result) {
       return res.status(400).json({
         success: false,
         message: "Email is not Found",
       });
     }
-    //agar passworng dale to kya karega
-    if (result.password != password) {
+
+    const isPasswordValid = await bcrypt.compare(password, result.password);
+    if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
         message: "Password is incorrect",
       });
     }
+
 
   
 
